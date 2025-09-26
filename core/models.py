@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -62,7 +63,7 @@ class PRF(models.Model):
     business_unit = models.CharField(max_length=100, choices=BUSINESS_UNIT_CHOICES)
     department_name = models.CharField(max_length=100)
     interview_levels = models.IntegerField()
-    immediate_supervisor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reason_for_posting')
+    immediate_supervisor = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='supervised_prfs')
     hiring_managers = models.ManyToManyField(
         User,
         related_name='prfs_as_hiring_manager',
@@ -80,14 +81,19 @@ class PRF(models.Model):
     qualifications = models.TextField()
     non_negotiables = models.TextField(blank=True)
     salary_budget = models.DecimalField(max_digits=10, decimal_places=2)
-    # if salary_range is True then we will accept min_salary and max_salary but if not min and max salary will be salary_budget
+    is_salary_range = models.BooleanField(default=False)
     min_salary = models.DecimalField(max_digits=10, decimal_places=2)
     max_salary = models.DecimalField(max_digits=10, decimal_places=2)
     assessment_required = models.BooleanField(default=False)
     assessment_types = JSONField(default=dict, null=True, blank=True)
-    other_assessment = models.TextField(blank=True)
+    other_assessment = ArrayField(
+        models.CharField(max_length=50),
+        blank=True,
+        default=list
+    )
     hardware_required = JSONField(default=dict, null=True, blank=True)
     software_required = JSONField(default=dict, null=True, blank=True)
+    published = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

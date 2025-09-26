@@ -3,12 +3,10 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from app import settings
 from auth.authentication import CookieJWTAuthentication
-from auth.permissions import IsSuperAdmin
 from user.serializers import UserSerializer
 from core.models import User
 
@@ -79,7 +77,7 @@ def login(request):
         }, status=status.HTTP_400_BAD_REQUEST)
 
     if user.attempt > 0:
-        user.attemp = 0
+        user.attempt = 0
         user.save()
 
     return send_token(user)

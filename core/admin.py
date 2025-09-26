@@ -68,3 +68,11 @@ class UserAdmin(BaseUserAdmin):
             ),
         }),
     )
+
+
+@admin.register(PRF)
+class PRFAdmin(admin.ModelAdmin):
+    list_display = ('job_title', 'target_start_date', 'number_of_vacancies', 'reason_for_posting', 'business_unit')
+    search_fields = ('job_title', 'reason_for_posting', 'business_unit')
+    list_filter = ('business_unit', 'target_start_date')
+    ordering = ('id',)
