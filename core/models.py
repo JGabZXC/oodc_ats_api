@@ -1,4 +1,5 @@
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -95,8 +96,134 @@ class PRF(models.Model):
     software_required = JSONField(default=dict, null=True, blank=True)
     published = models.BooleanField(default=False)
 
+    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posted_prfs')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'PRF: {self.job_title} - {self.department_name} ({self.business_unit})'
+
+
+# FOR CLIENT JOB POSTING SYSTEM
+class Client(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255)
+    contact_number = models.CharField(max_length=20)
+
+    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clients')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+class Position(models.Model):
+    EDUCATION_LEVEL_CHOICES = [
+        ('high_school', 'High School'),
+        ('associate', 'Associate Degree'),
+        ('bachelor', 'Bachelor\'s Degree'),
+        ('master', 'Master\'s Degree'),
+        ('doctorate', 'Doctorate Degree'),
+    ]
+
+    EMPLOYMENT_TYPE_CHOICES = [
+        ('full_time', 'Full Time'),
+        ('part_time', 'Part Time'),
+        ('contract', 'Contract'),
+        ('internship', 'Internship'),
+        ('temporary', 'Temporary'),
+    ]
+
+    EXPERIENCE_LEVEL_CHOICES = [
+        ('entry', 'Entry Level'),
+        ('junior', 'Junior'),
+        ('mid', 'Mid Level'),
+        ('senior', 'Senior'),
+        ('lead', 'Lead'),
+        ('executive', 'Executive'),
+    ]
+
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('active', 'Active'),
+        ('closed', 'Closed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='positions')
+    job_title = models.CharField(max_length=255)
+    education_level = models.CharField(max_length=255, choices=EDUCATION_LEVEL_CHOICES)
+    department = models.CharField(max_length=255)
+    experience_level = models.CharField(max_length=50, choices=EXPERIENCE_LEVEL_CHOICES)
+    work_setup = models.CharField(max_length=50)
+    date_needed = models.DateField()
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
+    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPE_CHOICES)
+    reason_for_hiring = models.CharField(max_length=255)
+    other_reason_for_hiring = models.CharField(max_length=255, blank=True, null=True) # if reason_for_hiring is 'others'
+    min_budget = models.DecimalField(max_digits=10, decimal_places=2)
+    max_budget = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField()
+    location = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.job_title
+
+# Step 3
+class ApplicationForm(models.Model):
+    FIELDS_CHOICES = [
+        ('required', 'Required'),
+        ('optional', 'Optional'),
+        ('disabled', 'Disabled'),
+    ]
+
+    position = models.ForeignKey(Position, on_delete=models.CASCADE, related_name='application_form')
+    name = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    birth_date = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    gender = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    primary_contact_number = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    secondary_contact_number = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    email = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    linkedin_profile = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    address = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+
+    job_name = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    company = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    years_experience = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    position_applying_for = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    expected_salary = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    willing_to_work_onsite = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    photo_2x2 = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+
+    education_attained = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    year_graduated = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    university = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    course = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    work_experience = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    job_name1 = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+
+    how_did_your_hear_about_us = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    agreement = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    signature = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+
+class PipelineStep(models.Model):
+    PROCESS_TYPE_CHOICES = [
+        ('resume_screening', 'Resume Screening'),
+        ('phone_interview', 'Phone Interview'),
+        ('initial_interview', 'Initial Interview'),
+        ('assessments', 'Assessments'),
+        ('final_interview', 'Final Interview'),
+        ('offer', 'Offer'),
+        ('onboarding', 'Onboarding'),
+    ]
+
+    position = models.ForeignKey(Position, on_delete=models.CASCADE, related_name='pipeline')
+    process_type = models.CharField(max_length=50, choices=PROCESS_TYPE_CHOICES)
+    process_title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField() # Order of the process within the stage pipeline
+    stage = models.PositiveIntegerField() # If for Stage 1, Stage 2, Stage 3, etc.
+
+    def __str__(self):
+        return self.process_title
+
