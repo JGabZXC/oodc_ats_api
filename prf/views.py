@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.models import PRF
 from prf.serializers import PRFSerializer
 
 
@@ -12,7 +13,9 @@ class PrfAV(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({}, status=status.HTTP_200_OK)
+        prfs = PRF.objects.all()
+        serializer = PRFSerializer(prfs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = PRFSerializer(data=request.data)
