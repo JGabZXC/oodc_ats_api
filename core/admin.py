@@ -141,4 +141,4 @@ class ApplicationFormAdmin(admin.ModelAdmin):
 class PipelineStepAdmin(admin.ModelAdmin):
     list_display = ('id', 'position', 'process_type', 'process_title')
     list_filter = ('position',)
-    ordering = ('order',)
+    ordering = ('id', 'order',)

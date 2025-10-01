@@ -198,7 +198,7 @@ class ApplicationForm(models.Model):
         ('disabled', 'Disabled'),
     ]
 
-    position = models.ForeignKey(Position, on_delete=models.CASCADE, related_name='application_form')
+    position = models.OneToOneField(Position, on_delete=models.CASCADE, related_name='application_form')
     name = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     birth_date = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     gender = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
@@ -225,6 +225,9 @@ class ApplicationForm(models.Model):
     how_did_your_hear_about_us = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     agreement = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     signature = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+
+    def __str__(self):
+        return f'{self.position.job_title} - {self.position.client.name}'
 
 
 class PipelineStep(models.Model):
