@@ -15,14 +15,14 @@ class PositionAV(APIView):
         return [AllowAny()]
 
     def get(self, request):
-        positions = Position.objects.all()
+        positions = Position.objects.filter(active=True, published=True)
         serializer = PositionSerializer(positions, many=True)
         return Response(serializer.data)
 
     def post(self, request):
         serializer = PositionSerializer(data=request.data)
         if serializer.is_valid():
-            position = serializer.save()
+            position = serializer.save(posted_by=request.user)
             return Response(PositionSerializer(position).data, status=201)
         return Response(serializer.errors, status=400)
 
@@ -44,16 +44,6 @@ class PositionDetailAV(APIView):
             return Response({"error": "Position not found"}, status=404)
         serializer = PositionSerializer(position)
         return Response(serializer.data)
-
-    def put(self, request, position_pk):
-        position = self.get_object(position_pk)
-        if not position:
-            return Response({"error": "Position not found"}, status=404)
-        serializer = PositionSerializer(position, data=request.data)
-        if serializer.is_valid():
-            position = serializer.save()
-            return Response(PositionSerializer(position).data)
-        return Response(serializer.errors, status=400)
 
     def patch(self, request, position_pk):
         position = self.get_object(position_pk)

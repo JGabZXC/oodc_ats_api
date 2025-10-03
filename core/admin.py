@@ -111,7 +111,6 @@ class ApplicationFormAdmin(admin.ModelAdmin):
         }),
         ('Job Details', {
             'fields': [
-                'position_applying_for',
                 'expected_salary',
                 'willing_to_work_onsite',
                 'photo_2x2',
@@ -130,7 +129,7 @@ class ApplicationFormAdmin(admin.ModelAdmin):
         }),
         ('Acknowledgement', {
             'fields': [
-                'how_did_your_hear_about_us',
+                'how_did_you_hear_about_us',
                 'agreement',
                 'signature'
             ]

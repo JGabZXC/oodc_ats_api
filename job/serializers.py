@@ -21,20 +21,36 @@ class ApplicationFormSerializer(serializers.ModelSerializer):
 class PipelineStepSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     _delete = serializers.BooleanField(required=False, write_only=True)
+    process_type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = PipelineStep
         exclude = ['position']
+
+    def get_process_type_display(self, obj):
+        return obj.get_process_type_display()
 
 
 class PositionSerializer(serializers.ModelSerializer):
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all())
     application_form = ApplicationFormSerializer(required=True)
     pipeline = PipelineStepSerializer(many=True, required=True)
+    work_setup_display = serializers.SerializerMethodField()
+    experience_level_display = serializers.SerializerMethodField()
+    employment_type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Position
         fields = '__all__'
+
+    def get_work_setup_display(self, obj):
+        return obj.get_work_setup_display()
+
+    def get_experience_level_display(self, obj):
+        return obj.get_experience_level_display()
+
+    def get_employment_type_display(self, obj):
+        return obj.get_employment_type_display()
 
     def create(self, validated_data):
         application_form_data = validated_data.pop('application_form')
@@ -58,22 +74,17 @@ class PositionSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
             instance.save()
 
-            if app_form_data:
+            if app_form_data is not None:
                 ApplicationForm.objects.update_or_create(
                     position=instance, defaults=app_form_data
                 )
 
-            if pipeline_data:
+            if pipeline_data is not None:
                 for step_data in pipeline_data:
                     step_id = step_data.get('id')
 
                     if step_data.get('_delete') and step_id:
-                        try:
-                            step = PipelineStep.objects.get(id=step_id)
-                            step.delete()
-                        except PipelineStep.DoesNotExist:
-                            pass
-                        continue
+                        PipelineStep.objects.filter(id=step_id).delete()
 
                     if step_id:
                         try:

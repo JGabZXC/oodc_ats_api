@@ -100,8 +100,7 @@ class PRF(models.Model):
     software_required = JSONField(default=dict, null=True, blank=True)
     published = models.BooleanField(default=False)
 
-    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posted_prfs',
-                                  null=True)  # Change this later, posted_by should not be null or blank
+    posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_prfs', null=True)  # Change this later, posted_by should not be null or blank
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -118,7 +117,7 @@ class Client(models.Model):
         MaxLengthValidator(11)
     ])
 
-    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clients')
+    posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='clients', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -159,14 +158,20 @@ class Position(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='positions')
+    WORK_SETUP_CHOICES = [
+        ('onsite', 'Onsite'),
+        ('remote', 'Remote'),
+        ('hybrid', 'Hybrid'),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='positions', null=True)
     job_title = models.CharField(max_length=255)
     education_level = models.CharField(max_length=255, choices=EDUCATION_LEVEL_CHOICES)
     department = models.CharField(max_length=255)
     experience_level = models.CharField(max_length=50, choices=EXPERIENCE_LEVEL_CHOICES)
     employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPE_CHOICES)
     headcount = models.IntegerField(validators=[MaxValueValidator(100)], default=0)
-    work_setup = models.CharField(max_length=50)
+    work_setup = models.CharField(max_length=50, choices=WORK_SETUP_CHOICES)
     date_needed = models.DateField()
 
     reason_for_hiring = models.CharField(max_length=255)
@@ -175,13 +180,14 @@ class Position(models.Model):
     min_budget = models.DecimalField(max_digits=10, decimal_places=2)
     max_budget = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField()
+    responsibilities = models.TextField()
+    qualifications = models.TextField()
     location = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
 
     published = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
-    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posted_positions',
-                                  null=True)  # Change this later, posted_by should not be null or blank
+    posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_positions', null=True)  # Change this later, posted_by should not be null or blank
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
@@ -190,7 +196,7 @@ class Position(models.Model):
 
 
 # Step 3
-# This model will define the application form such as if the field name is required, optional, or disabled
+# This model will define the application form such as if the field is required, optional, or disabled
 class ApplicationForm(models.Model):
     FIELDS_CHOICES = [
         ('required', 'Required'),
@@ -222,7 +228,7 @@ class ApplicationForm(models.Model):
     course = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     work_experience = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
 
-    how_did_your_hear_about_us = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
+    how_did_you_hear_about_us = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     agreement = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     signature = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
 
