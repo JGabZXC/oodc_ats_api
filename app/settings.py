@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'core',
     'user',
     'prf',
+    'job',
+    'client',
     'drf_spectacular',
 ]
 

@@ -117,6 +117,7 @@ class Client(models.Model):
         MaxLengthValidator(11)
     ])
 
+    active = models.BooleanField(default=True)
     posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='clients', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

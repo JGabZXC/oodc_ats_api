@@ -2,13 +2,6 @@ from rest_framework import serializers
 from django.db import transaction
 from core.models import Client, Position, ApplicationForm, PipelineStep
 
-
-class ClientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Client
-        fields = '__all__'
-
-
 class ApplicationFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationForm

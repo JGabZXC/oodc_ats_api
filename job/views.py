@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
 from core.models import Position
-from job.permission import IsHiringManager
+from auth.permissions import IsHiringManager
 from job.serializers import PositionSerializer
 
 
