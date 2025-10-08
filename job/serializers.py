@@ -25,6 +25,7 @@ class PipelineStepSerializer(serializers.ModelSerializer):
 
 
 class PositionSerializer(serializers.ModelSerializer):
+    unique_id = serializers.SerializerMethodField(read_only=True)
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all())
     application_form = ApplicationFormSerializer(required=True)
     pipeline = PipelineStepSerializer(many=True, required=True)
@@ -35,6 +36,9 @@ class PositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
         fields = '__all__'
+
+    def get_unique_id(self, obj):
+        return f"position_{obj.id}"
 
     def get_work_setup_display(self, obj):
         return obj.get_work_setup_display()

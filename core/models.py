@@ -33,12 +33,18 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('supervisor', 'Supervisor'),
         ('human_resources', 'Human Resources'),
     ]
+
+    BUSINESS_UNIT_CHOICES = [
+        ('oodc', 'OODC'),
+        ('oors', 'OORS'),
+    ]
+
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     middle_name = models.CharField(max_length=255, blank=True)
     last_name = models.CharField(max_length=255)
     attempt = models.IntegerField(default=0)
-    business_unit = models.CharField(max_length=100, blank=True)
+    business_unit = models.CharField(max_length=100, choices=BUSINESS_UNIT_CHOICES, default='oodc')
     department = models.CharField(max_length=50, blank=True)
     role = models.CharField(max_length=50, default='manager',
                             choices=ROLE_CHOICES)  # roles: manager, hiring_manager, supervisor, human_resources
@@ -59,6 +65,20 @@ class PRF(models.Model):
         ('oors', 'OORS'),
     ]
 
+    EMPLOYMENT_TYPE_CHOICES = [
+        ('full_time', 'Full Time'),
+        ('part_time', 'Part Time'),
+        ('contract', 'Contract'),
+        ('internship', 'Internship'),
+        ('temporary', 'Temporary'),
+    ]
+
+    WORK_SETUP_CHOICES = [
+        ('onsite', 'Onsite'),
+        ('remote', 'Remote'),
+        ('hybrid', 'Hybrid'),
+    ]
+
     job_title = models.CharField(max_length=255)
     target_start_date = models.DateField()
     number_of_vacancies = models.IntegerField()
@@ -74,14 +94,14 @@ class PRF(models.Model):
         related_name='prfs_as_hiring_manager',
         blank=True
     )
-    contract_type = models.CharField(max_length=100)
-    work_arrangement = models.CharField(max_length=100)
+    employment_type = models.CharField(max_length=100, choices=EMPLOYMENT_TYPE_CHOICES)
+    work_setup = models.CharField(max_length=100, choices=WORK_SETUP_CHOICES)
     category = models.CharField(max_length=100)
     position = models.CharField(max_length=100)
     working_site = models.CharField(max_length=100)
     work_schedule_from = models.TimeField()
     work_schedule_to = models.TimeField()
-    job_description = models.TextField()
+    description = models.TextField()
     responsibilities = models.TextField()
     qualifications = models.TextField()
     non_negotiables = models.TextField(blank=True)
@@ -98,8 +118,9 @@ class PRF(models.Model):
     )
     hardware_required = JSONField(default=dict, null=True, blank=True)
     software_required = JSONField(default=dict, null=True, blank=True)
-    published = models.BooleanField(default=False)
 
+    active = models.BooleanField(default=True)
+    published = models.BooleanField(default=False)
     posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_prfs', null=True)  # Change this later, posted_by should not be null or blank
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

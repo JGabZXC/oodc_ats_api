@@ -2,9 +2,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
-from core.models import Position
+from core.models import Position, PRF
 from auth.permissions import IsHiringManager
 from job.serializers import PositionSerializer
+from prf.serializers import PRFSerializer
 
 
 # Create your views here.
@@ -15,9 +16,22 @@ class PositionAV(APIView):
         return [AllowAny()]
 
     def get(self, request):
+        prfs = PRF.objects.filter(active=True, published=True)
         positions = Position.objects.filter(active=True, published=True)
-        serializer = PositionSerializer(positions, many=True)
-        return Response(serializer.data)
+
+        prfs_serializer = PRFSerializer(prfs, many=True)
+        positions_serializer = PositionSerializer(positions, many=True)
+
+        prf_data = [
+            {**item, "type": "prf"} for item in prfs_serializer.data
+        ]
+        position_data = [
+            {**item, "type": "position"} for item in positions_serializer.data
+        ]
+
+        combined = prf_data + position_data
+        combined = sorted(combined, key=lambda x: x["created_at"], reverse=True)
+        return Response(combined)
 
     def post(self, request):
         serializer = PositionSerializer(data=request.data)
