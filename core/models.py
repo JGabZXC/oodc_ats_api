@@ -79,13 +79,21 @@ class PRF(models.Model):
         ('hybrid', 'Hybrid'),
     ]
 
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('active', 'Active'),
+        ('closed', 'Closed'),
+        ('cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
+    ]
+
     job_title = models.CharField(max_length=255)
     target_start_date = models.DateField()
-    number_of_vacancies = models.IntegerField()
+    number_of_vacancies = models.IntegerField(validators=[MaxValueValidator(100)], default=0)
     reason_for_posting = models.CharField(max_length=100)
     other_reason_for_posting = models.CharField(max_length=100, blank=True)  # if reason_for_posting is 'others'
     business_unit = models.CharField(max_length=100, choices=BUSINESS_UNIT_CHOICES)
-    department_name = models.CharField(max_length=100)
+    department = models.CharField(max_length=100)
     interview_levels = models.IntegerField()
     immediate_supervisor = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE,
                                              related_name='supervised_prfs')
@@ -118,7 +126,9 @@ class PRF(models.Model):
     )
     hardware_required = JSONField(default=dict, null=True, blank=True)
     software_required = JSONField(default=dict, null=True, blank=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
 
+    type=models.CharField(max_length=50, default='prf', choices=[('prf', 'PRF',)])
     active = models.BooleanField(default=True)
     published = models.BooleanField(default=False)
     posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_prfs', null=True)  # Change this later, posted_by should not be null or blank
@@ -126,7 +136,7 @@ class PRF(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'PRF: {self.job_title} - {self.department_name} ({self.business_unit})'
+        return f'PRF: {self.job_title} - {self.department} ({self.business_unit})'
 
 
 # FOR CLIENT JOB POSTING SYSTEM
@@ -178,6 +188,7 @@ class Position(models.Model):
         ('active', 'Active'),
         ('closed', 'Closed'),
         ('cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
     ]
 
     WORK_SETUP_CHOICES = [
@@ -192,9 +203,9 @@ class Position(models.Model):
     department = models.CharField(max_length=255)
     experience_level = models.CharField(max_length=50, choices=EXPERIENCE_LEVEL_CHOICES)
     employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPE_CHOICES)
-    headcount = models.IntegerField(validators=[MaxValueValidator(100)], default=0)
+    number_of_vacancies = models.IntegerField(validators=[MaxValueValidator(100)], default=0)
     work_setup = models.CharField(max_length=50, choices=WORK_SETUP_CHOICES)
-    date_needed = models.DateField()
+    target_start_date = models.DateField()
 
     reason_for_hiring = models.CharField(max_length=255)
     other_reason_for_hiring = models.CharField(max_length=255, blank=True,
@@ -207,6 +218,7 @@ class Position(models.Model):
     location = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
 
+    type = models.CharField(max_length=50, default='position', choices=[('position', 'Position',)])
     published = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
     posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_positions', null=True)  # Change this later, posted_by should not be null or blank

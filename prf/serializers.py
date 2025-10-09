@@ -15,6 +15,7 @@ class PRFSerializer(serializers.ModelSerializer):
     )
     employment_type_display = serializers.SerializerMethodField()
     work_setup_display = serializers.SerializerMethodField()
+    type_display = serializers.SerializerMethodField()
 
 
     class Meta:
@@ -23,11 +24,12 @@ class PRFSerializer(serializers.ModelSerializer):
 
     def get_unique_id(self, obj):
         return f"prf_{obj.id}"
-
     def get_employment_type_display(self, obj):
         return obj.get_employment_type_display()
     def get_work_setup_display(self, obj):
         return obj.get_work_setup_display()
+    def get_type_display(self, obj):
+        return obj.get_type_display()
 
     def to_internal_value(self, data):
         if data.get('immediate_supervisor') == 'no_supervisor':

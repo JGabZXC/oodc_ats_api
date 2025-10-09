@@ -32,6 +32,7 @@ class PositionSerializer(serializers.ModelSerializer):
     work_setup_display = serializers.SerializerMethodField()
     experience_level_display = serializers.SerializerMethodField()
     employment_type_display = serializers.SerializerMethodField()
+    type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Position
@@ -48,6 +49,9 @@ class PositionSerializer(serializers.ModelSerializer):
 
     def get_employment_type_display(self, obj):
         return obj.get_employment_type_display()
+
+    def get_type_display(self, obj):
+        return obj.get_type_display()
 
     def create(self, validated_data):
         application_form_data = validated_data.pop('application_form')

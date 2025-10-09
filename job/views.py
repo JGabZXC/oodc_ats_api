@@ -16,8 +16,15 @@ class PositionAV(APIView):
         return [AllowAny()]
 
     def get(self, request):
-        prfs = PRF.objects.filter(active=True, published=True)
-        positions = Position.objects.filter(active=True, published=True)
+        my_posts = request.query_params.get('my_posts', 'false').lower() == 'true'
+        status = request.query_params.get('status', None)
+
+        if my_posts and request.user.is_authenticated:
+            prfs = PRF.objects.filter(active=True, published=True, posted_by=request.user, status=status)
+            positions = Position.objects.filter(active=True, published=True, posted_by=request.user, status=status)
+        else:
+            prfs = PRF.objects.filter(active=True, published=True)
+            positions = Position.objects.filter(active=True, published=True)
 
         prfs_serializer = PRFSerializer(prfs, many=True)
         positions_serializer = PositionSerializer(positions, many=True)
