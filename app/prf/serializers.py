@@ -8,8 +8,7 @@ class PRFSerializer(serializers.ModelSerializer):
         many=True,
         queryset=User.objects.all(),
     )
-    immediate_supervisor = serializers.SerializerMethodField()
-
+    immediate_supervisor_display = serializers.SerializerMethodField()
     employment_type_display = serializers.SerializerMethodField()
     work_setup_display = serializers.SerializerMethodField()
     type_display = serializers.SerializerMethodField()
@@ -19,6 +18,11 @@ class PRFSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_immediate_supervisor(self, obj):
+        if obj.immediate_supervisor:
+            return f"{obj.immediate_supervisor.first_name} {obj.immediate_supervisor.last_name}"
+        return None
+
+    def get_immediate_supervisor_display(self, obj):
         if obj.immediate_supervisor:
             return f"{obj.immediate_supervisor.first_name} {obj.immediate_supervisor.last_name}"
         return None

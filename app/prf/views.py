@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -45,3 +46,14 @@ class PrfAV(APIView):
 
         return Response( status=status.HTTP_200_OK)
 
+class PrfDetails(RetrieveUpdateDestroyAPIView):
+    queryset = PRF.objects.all()
+    serializer_class = PRFSerializer
+    lookup_field = 'pk'
+    permission_classes = [IsHiringManager]
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.active = False
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)

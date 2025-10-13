@@ -1,3 +1,4 @@
 menv/
 .idea/
 .env
+migrations/

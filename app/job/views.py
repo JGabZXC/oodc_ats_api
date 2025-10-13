@@ -23,11 +23,11 @@ class PositionAV(APIView):
 
         if my_posts and request.user.is_authenticated:
             if status == 'no_active':
-                prfs = PRF.objects.filter(active=True, published=True, posted_by=request.user).exclude(status='active')
-                positions = Position.objects.filter(active=True, published=True, posted_by=request.user).exclude(status='active')
+                prfs = PRF.objects.filter(active=True, posted_by=request.user).exclude(status='active')
+                positions = Position.objects.filter(active=True, posted_by=request.user).exclude(status='active')
             else:
-                prfs = PRF.objects.filter(active=True, published=True, posted_by=request.user, status=status)
-                positions = Position.objects.filter(active=True, published=True, posted_by=request.user, status=status)
+                prfs = PRF.objects.filter(active=True, posted_by=request.user, status=status)
+                positions = Position.objects.filter(active=True, posted_by=request.user, status=status)
         else:
             prfs = PRF.objects.filter(active=True, published=True)
             positions = Position.objects.filter(active=True, published=True)

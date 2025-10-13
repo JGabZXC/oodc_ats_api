@@ -126,7 +126,7 @@ class PRF(models.Model):
     )
     hardware_required = JSONField(default=dict, null=True, blank=True)
     software_required = JSONField(default=dict, null=True, blank=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
 
     type = models.CharField(max_length=50, default='prf', choices=[('prf', 'PRF',)])
     active = models.BooleanField(default=True)
@@ -216,7 +216,7 @@ class Position(models.Model):
     responsibilities = models.TextField()
     qualifications = models.TextField()
     location = models.CharField(max_length=255)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
 
     type = models.CharField(max_length=50, default='position', choices=[('position', 'Position',)])
     published = models.BooleanField(default=False)
