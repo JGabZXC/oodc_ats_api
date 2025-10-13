@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -9,6 +10,7 @@ from prf.serializers import PRFSerializer
 
 
 # Create your views here.
+# The edit, delete, get details are only for Position (CLIENT) not PRF
 class PositionAV(APIView):
     def get_permissions(self):
         if self.request.method == 'POST':
@@ -20,8 +22,12 @@ class PositionAV(APIView):
         status = request.query_params.get('status', None)
 
         if my_posts and request.user.is_authenticated:
-            prfs = PRF.objects.filter(active=True, published=True, posted_by=request.user, status=status)
-            positions = Position.objects.filter(active=True, published=True, posted_by=request.user, status=status)
+            if status == 'no_active':
+                prfs = PRF.objects.filter(active=True, published=True, posted_by=request.user).exclude(status='active')
+                positions = Position.objects.filter(active=True, published=True, posted_by=request.user).exclude(status='active')
+            else:
+                prfs = PRF.objects.filter(active=True, published=True, posted_by=request.user, status=status)
+                positions = Position.objects.filter(active=True, published=True, posted_by=request.user, status=status)
         else:
             prfs = PRF.objects.filter(active=True, published=True)
             positions = Position.objects.filter(active=True, published=True)
@@ -47,6 +53,23 @@ class PositionAV(APIView):
             return Response(PositionSerializer(position).data, status=201)
         return Response(serializer.errors, status=400)
 
+    def delete(self, request):
+        ids = request.data.get('ids')
+
+        if not isinstance(ids, list):
+            return Response({"error": "Invalid request"}, status=400)
+
+        positions = Position.objects.filter(id__in=ids, active=True)
+        if not positions.exists():
+            return Response({"error": "No matching Positions found"}, status=status.HTTP_404_NOT_FOUND)
+
+        for position in positions:
+            position.active = False
+            position.save()
+
+        return Response(status=204)
+
+
 class PositionDetailAV(APIView):
     def get_permissions(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
@@ -55,7 +78,7 @@ class PositionDetailAV(APIView):
 
     def get_object(self, position_pk):
         try:
-            return Position.objects.get(pk=position_pk)
+            return Position.objects.get(pk=position_pk, active=True)
         except Position.DoesNotExist:
             return None
 
@@ -80,5 +103,6 @@ class PositionDetailAV(APIView):
         position = self.get_object(position_pk)
         if not position:
             return Response({"error": "Position not found"}, status=404)
-        position.delete()
+        position.active = False
+        position.save()
         return Response(status=204)

@@ -8,19 +8,20 @@ class PRFSerializer(serializers.ModelSerializer):
         many=True,
         queryset=User.objects.all(),
     )
-    immediate_supervisor = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
-        allow_null=True,
-        required=False,
-    )
+    immediate_supervisor = serializers.SerializerMethodField()
+
     employment_type_display = serializers.SerializerMethodField()
     work_setup_display = serializers.SerializerMethodField()
     type_display = serializers.SerializerMethodField()
 
-
     class Meta:
         model = PRF
         fields = '__all__'
+
+    def get_immediate_supervisor(self, obj):
+        if obj.immediate_supervisor:
+            return f"{obj.immediate_supervisor.first_name} {obj.immediate_supervisor.last_name}"
+        return None
 
     def get_unique_id(self, obj):
         return f"prf_{obj.id}"

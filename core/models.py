@@ -128,7 +128,7 @@ class PRF(models.Model):
     software_required = JSONField(default=dict, null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
 
-    type=models.CharField(max_length=50, default='prf', choices=[('prf', 'PRF',)])
+    type = models.CharField(max_length=50, default='prf', choices=[('prf', 'PRF',)])
     active = models.BooleanField(default=True)
     published = models.BooleanField(default=False)
     posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_prfs', null=True)  # Change this later, posted_by should not be null or blank

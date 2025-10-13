@@ -17,7 +17,7 @@ class PrfAV(APIView):
         return [AllowAny()]
 
     def get(self, request):
-        prfs = PRF.objects.all()
+        prfs = PRF.objects.filter(active=True)
         serializer = PRFSerializer(prfs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -28,3 +28,20 @@ class PrfAV(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        ids = request.data.get('ids')
+
+        if not isinstance(ids, list):
+            return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+        prfs = PRF.objects.filter(id__in=ids, active=True)
+        if not prfs.exists():
+            return Response({"error": "No matching PRFs found"}, status=status.HTTP_404_NOT_FOUND)
+
+        for prf in prfs:
+            prf.active = False
+            prf.save()
+
+        return Response( status=status.HTTP_200_OK)
+
