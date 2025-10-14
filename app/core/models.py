@@ -6,8 +6,6 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin, Permission, Group
 )
-from django.db.models import JSONField
-
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -23,7 +21,6 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
-
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
@@ -58,87 +55,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-
-class PRF(models.Model):
-    BUSINESS_UNIT_CHOICES = [
-        ('oodc', 'OODC'),
-        ('oors', 'OORS'),
-    ]
-
-    EMPLOYMENT_TYPE_CHOICES = [
-        ('full_time', 'Full Time'),
-        ('part_time', 'Part Time'),
-        ('contract', 'Contract'),
-        ('internship', 'Internship'),
-        ('temporary', 'Temporary'),
-    ]
-
-    WORK_SETUP_CHOICES = [
-        ('onsite', 'Onsite'),
-        ('remote', 'Remote'),
-        ('hybrid', 'Hybrid'),
-    ]
-
-    STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('active', 'Active'),
-        ('closed', 'Closed'),
-        ('cancelled', 'Cancelled'),
-        ('pending', 'Pending'),
-    ]
-
-    job_title = models.CharField(max_length=255)
-    target_start_date = models.DateField()
-    number_of_vacancies = models.IntegerField(validators=[MaxValueValidator(100)], default=0)
-    reason_for_posting = models.CharField(max_length=100)
-    other_reason_for_posting = models.CharField(max_length=100, blank=True)  # if reason_for_posting is 'others'
-    business_unit = models.CharField(max_length=100, choices=BUSINESS_UNIT_CHOICES)
-    department = models.CharField(max_length=100)
-    interview_levels = models.IntegerField()
-    immediate_supervisor = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE,
-                                             related_name='supervised_prfs')
-    hiring_managers = models.ManyToManyField(
-        User,
-        related_name='prfs_as_hiring_manager',
-        blank=True
-    )
-    employment_type = models.CharField(max_length=100, choices=EMPLOYMENT_TYPE_CHOICES)
-    work_setup = models.CharField(max_length=100, choices=WORK_SETUP_CHOICES)
-    category = models.CharField(max_length=100)
-    position = models.CharField(max_length=100)
-    working_site = models.CharField(max_length=100)
-    work_schedule_from = models.TimeField()
-    work_schedule_to = models.TimeField()
-    description = models.TextField()
-    responsibilities = models.TextField()
-    qualifications = models.TextField()
-    non_negotiables = models.TextField(blank=True)
-    salary_budget = models.DecimalField(max_digits=10, decimal_places=2)
-    is_salary_range = models.BooleanField(default=False)
-    min_salary = models.DecimalField(max_digits=10, decimal_places=2)
-    max_salary = models.DecimalField(max_digits=10, decimal_places=2)
-    assessment_required = models.BooleanField(default=False)
-    assessment_types = JSONField(default=dict, null=True, blank=True)
-    other_assessment = ArrayField(
-        models.CharField(max_length=50),
-        blank=True,
-        default=list
-    )
-    hardware_required = JSONField(default=dict, null=True, blank=True)
-    software_required = JSONField(default=dict, null=True, blank=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
-
-    type = models.CharField(max_length=50, default='prf', choices=[('prf', 'PRF',)])
-    active = models.BooleanField(default=True)
-    published = models.BooleanField(default=False)
-    posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_prfs', null=True)  # Change this later, posted_by should not be null or blank
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f'PRF: {self.job_title} - {self.department} ({self.business_unit})'
-
-
 # FOR CLIENT JOB POSTING SYSTEM
 class Client(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -156,7 +72,120 @@ class Client(models.Model):
     def __str__(self):
         return self.name
 
+# Normalize Tables Down Here
+class JobPosting(models.Model):
+    EMPLOYMENT_TYPE_CHOICES = [
+        ('full_time', 'Full Time'),
+        ('part_time', 'Part Time'),
+        ('contract', 'Contract'),
+        ('internship', 'Internship'),
+        ('temporary', 'Temporary'),
+    ]
 
+    WORK_SETUP_CHOICES = [
+        ('onsite', 'Onsite'),
+        ('remote', 'Remote'),
+        ('hybrid', 'Hybrid'),
+    ]
+
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('active', 'Active'),
+        ('closed', 'Closed'),
+        ('cancelled', 'Cancelled'),
+        ('pending', 'Pending'),
+    ]
+
+    TYPE_CHOICES = [
+        ('prf', 'PRF'),
+        ('client', 'Client'),
+    ]
+
+    job_title = models.CharField(max_length=255)
+    target_start_date = models.DateField()
+    reason_for_posting = models.CharField(max_length=100)
+    other_reason_for_posting = models.CharField(max_length=100, blank=True)
+    department_name = models.CharField(max_length=100)
+    employment_type = models.CharField(max_length=100)
+    work_setup = models.CharField(max_length=100)
+    working_site = models.CharField(max_length=100)
+    min_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    max_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField()
+    responsibilities = models.TextField()
+    qualifications = models.TextField()
+
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='pending')
+    type = models.CharField(max_length=100, choices=TYPE_CHOICES)
+    active = models.BooleanField(default=True)
+    published = models.BooleanField(default=False)
+    posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_job_postings', null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Logic for approving managers (Not Fully Implemented)
+    def get_editable_statuses_for_hiring_manager(self):
+        return ['draft', 'closed', 'cancelled', 'pending']
+
+    def set_status(self, new_status, approved_by_managers=0):
+        if self.type == 'prf':
+            if new_status == 'active' and approved_by_managers < 3:
+                raise ValueError('Cannot set status to active unless approved by 3 managers.')
+            if new_status not in self.get_editable_statuses_for_hiring_manager() and new_status != 'active':
+                raise ValueError('Status not editable by hiring manager.')
+
+        self.status = new_status
+        self.save()
+
+# PRFs
+class PRF(models.Model):
+    BUSINESS_UNIT_CHOICES = [
+        ('oodc', 'OODC'),
+        ('oors', 'OORS'),
+    ]
+
+    job_posting = models.OneToOneField(JobPosting, on_delete=models.CASCADE, related_name='prf', null=True)
+    number_of_vacancies = models.IntegerField(validators=[MaxValueValidator(100)], default=0)
+    business_unit = models.CharField(max_length=100, choices=BUSINESS_UNIT_CHOICES)
+    interview_levels = models.IntegerField()
+    immediate_supervisor = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL,
+                                             related_name='supervised_prf')
+    hiring_managers = models.ManyToManyField(User, related_name='prf_hiring_managers', blank=True)
+    category = models.CharField(max_length=100)
+    position = models.CharField(max_length=100)
+    work_schedule_from = models.TimeField()
+    work_schedule_to = models.TimeField()
+    non_negotiables = models.TextField(blank=True)
+    salary_budget = models.DecimalField(max_digits=10, decimal_places=2)
+    is_salary_range = models.BooleanField(default=False)
+    assessment_required = models.BooleanField(default=False)
+    other_assessment = ArrayField(models.TextField())
+
+    def __str__(self):
+        return f'PRF: {self.job_posting.job_title} - {self.job_posting.department_name} ({self.business_unit})'
+
+class AssessmentType(models.Model):
+    prfs = models.ForeignKey(PRF, on_delete=models.SET_NULL, related_name='assessment_types', null=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.name} - {self.prfs.job_posting.job_title}"
+
+class HardwareRequirement(models.Model):
+    prfs = models.ForeignKey(PRF, on_delete=models.SET_NULL, related_name='hardware_requirements', null=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.name} - {self.prfs.job_posting.job_title}"
+
+class SoftwareRequirement(models.Model):
+    prfs = models.ForeignKey(PRF, on_delete=models.SET_NULL, related_name='software_requirements', null=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.name} - {self.prfs.job_posting.job_title}"
+
+# Client Position
 class Position(models.Model):
     EDUCATION_LEVEL_CHOICES = [
         ('high_school', 'High School'),
@@ -164,14 +193,6 @@ class Position(models.Model):
         ('bachelor', 'Bachelor\'s Degree'),
         ('master', 'Master\'s Degree'),
         ('doctorate', 'Doctorate Degree'),
-    ]
-
-    EMPLOYMENT_TYPE_CHOICES = [
-        ('full_time', 'Full Time'),
-        ('part_time', 'Part Time'),
-        ('contract', 'Contract'),
-        ('internship', 'Internship'),
-        ('temporary', 'Temporary'),
     ]
 
     EXPERIENCE_LEVEL_CHOICES = [
@@ -183,54 +204,11 @@ class Position(models.Model):
         ('executive', 'Executive'),
     ]
 
-    STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('active', 'Active'),
-        ('closed', 'Closed'),
-        ('cancelled', 'Cancelled'),
-        ('pending', 'Pending'),
-    ]
-
-    WORK_SETUP_CHOICES = [
-        ('onsite', 'Onsite'),
-        ('remote', 'Remote'),
-        ('hybrid', 'Hybrid'),
-    ]
-
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='positions', null=True)
-    job_title = models.CharField(max_length=255)
+    client = models.ForeignKey(Client, related_name='positions', on_delete=models.SET_NULL, null=True)
+    job_posting = models.OneToOneField(JobPosting, on_delete=models.SET_NULL, related_name='position', null=True)
     education_level = models.CharField(max_length=255, choices=EDUCATION_LEVEL_CHOICES)
-    department = models.CharField(max_length=255)
     experience_level = models.CharField(max_length=50, choices=EXPERIENCE_LEVEL_CHOICES)
-    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPE_CHOICES)
-    number_of_vacancies = models.IntegerField(validators=[MaxValueValidator(100)], default=0)
-    work_setup = models.CharField(max_length=50, choices=WORK_SETUP_CHOICES)
-    target_start_date = models.DateField()
 
-    reason_for_hiring = models.CharField(max_length=255)
-    other_reason_for_hiring = models.CharField(max_length=255, blank=True,
-                                               null=True)  # if reason_for_hiring is 'others'
-    min_budget = models.DecimalField(max_digits=10, decimal_places=2)
-    max_budget = models.DecimalField(max_digits=10, decimal_places=2)
-    description = models.TextField()
-    responsibilities = models.TextField()
-    qualifications = models.TextField()
-    location = models.CharField(max_length=255)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
-
-    type = models.CharField(max_length=50, default='position', choices=[('position', 'Position',)])
-    published = models.BooleanField(default=False)
-    active = models.BooleanField(default=True)
-    posted_by = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='posted_positions', null=True)  # Change this later, posted_by should not be null or blank
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
-
-    def __str__(self):
-        return f'{self.job_title} - {self.client.name}'
-
-
-# Step 3
-# This model will define the application form such as if the field is required, optional, or disabled
 class ApplicationForm(models.Model):
     FIELDS_CHOICES = [
         ('required', 'Required'),
@@ -248,8 +226,6 @@ class ApplicationForm(models.Model):
     linkedin_profile = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     address = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
 
-    # This should be disabled always since the position applying for is already known
-    # position_applying_for = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     expected_salary = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     willing_to_work_onsite = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
     photo_2x2 = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
@@ -267,8 +243,7 @@ class ApplicationForm(models.Model):
     signature = models.CharField(max_length=50, choices=FIELDS_CHOICES, default='optional')
 
     def __str__(self):
-        return f'{self.position.job_title} - {self.position.client.name}'
-
+        return f'{self.position.job_posting.job_title} - {self.position.client.name}'
 
 class PipelineStep(models.Model):
     PROCESS_TYPE_CHOICES = [
@@ -305,4 +280,4 @@ class PipelineStep(models.Model):
         ordering = ['stage', 'order']
 
     def __str__(self):
-        return f'{self.position.job_title} - {self.process_title}'
+        return f'{self.position.job_posting.job_title} - {self.process_title}'

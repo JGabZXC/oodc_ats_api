@@ -1,8 +1,7 @@
 from django.urls import path
-
-from job.views import PositionAV, PositionDetailAV
+#
+from job.views import JobPostingView
 
 urlpatterns = [
-    path('', PositionAV.as_view(), name='position-list-create'),
-    path('<int:position_pk>/', PositionDetailAV.as_view(), name='position-detail'),
+    path('', JobPostingView.as_view(), name='position-list'),
 ]

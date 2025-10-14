@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'core',
     'user',
     'prf',
+    'position',
     'job',
     'client',
     'drf_spectacular',
@@ -119,7 +120,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(minutes=120),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True, # NOT WORKING - Not installed in the INSTALLED_APPS
+    'BLACKLIST_AFTER_ROTATION': True, # NOT WORKING (one device per session) - Not installed in the INSTALLED_APPS
     'ALGORITHM': 'HS256',
 }
 

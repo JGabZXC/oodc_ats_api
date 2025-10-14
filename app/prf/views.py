@@ -1,6 +1,7 @@
+from django.db import transaction
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -13,47 +14,29 @@ from prf.serializers import PRFSerializer
 
 class PrfAV(APIView):
     def get_permissions(self):
-        if self.request.method == 'POST':
+        if self.request.method == 'POST' and self.request.method == 'DELETE':
             return [IsHiringManager()]
-        return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request):
-        prfs = PRF.objects.filter(active=True)
+        prfs = PRF.objects.all()
         serializer = PRFSerializer(prfs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = PRFSerializer(data=request.data)
+        serializer = PRFSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(posted_by=request.user)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request):
-        ids = request.data.get('ids')
-
-        if not isinstance(ids, list):
-            return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
-
-        prfs = PRF.objects.filter(id__in=ids, active=True)
-        if not prfs.exists():
-            return Response({"error": "No matching PRFs found"}, status=status.HTTP_404_NOT_FOUND)
-
-        for prf in prfs:
-            prf.active = False
-            prf.save()
-
-        return Response( status=status.HTTP_200_OK)
 
 class PrfDetails(RetrieveUpdateDestroyAPIView):
     queryset = PRF.objects.all()
     serializer_class = PRFSerializer
     lookup_field = 'pk'
-    permission_classes = [IsHiringManager]
 
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.active = False
-        instance.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_permissions(self):
+        if self.request.method == 'PATCH':
+            return [IsHiringManager()]
+        return [IsAuthenticated()]
