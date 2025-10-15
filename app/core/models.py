@@ -74,6 +74,16 @@ class Client(models.Model):
 
 # Normalize Tables Down Here
 class JobPosting(models.Model):
+    DEPARTMENT_NAME_CHOICES = [
+        ('sales-operations', 'Sales Operations Department'),
+        ('e-comm_dep', 'E-Commerce Department'),
+        ('retail-store_broadband-ops', 'Retail Store & Broadband Operations Department'),
+        ('key-account-and-fulfillment', 'Key Accounts and Fulfillment Department'),
+        ('admin-and-sales', 'Admin and Sales Department'),
+        ('field-sales', 'Field Sales Department'),
+        ('arm', 'ARM Department'),
+    ]
+
     EMPLOYMENT_TYPE_CHOICES = [
         ('full_time', 'Full Time'),
         ('part_time', 'Part Time'),
@@ -136,6 +146,9 @@ class JobPosting(models.Model):
 
         self.status = new_status
         self.save()
+
+    def __str__(self):
+        return self.job_title
 
 # PRFs
 class PRF(models.Model):

@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -21,6 +21,7 @@ class JobPostingView(ListAPIView):
         is_active_param = self.request.query_params.get('is_active', None)
         is_active = True if is_active_param is None else is_active_param.lower() == 'true'
         status = self.request.query_params.get('status', None)
+        type = self.request.query_params.get('type', None)
 
         if user.is_authenticated and my_postings:
             qs = JobPosting.objects.filter(posted_by=user, active=is_active)
@@ -28,6 +29,8 @@ class JobPostingView(ListAPIView):
                 qs = qs.filter(status=status)
             if no_active:
                 qs = qs.exclude(status='active')
+            if type is not None:
+                qs = qs.filter(type=type)
             return qs
 
         return JobPosting.objects.filter(status='active', published=True, active=True)
@@ -53,4 +56,21 @@ class JobPostingViewDelete(APIView):
 
         return Response({'error': 'Invalid data. "ids" should be a list of Job Posting IDs.'}, status=status.HTTP_400_BAD_REQUEST)
 
+class JobPostingDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = JobPostingSerializer
+    lookup_field = 'pk'
+
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'PUT', 'DELETE']:
+            self.permission_classes = [IsHiringManager]
+        else:
+            self.permission_classes = [AllowAny]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        # user = self.request.user
+        # if user.is_authenticated:
+        #     return JobPosting.objects.filter(posted_by=user)
+
+        return JobPosting.objects.filter(status='active', published=True, active=True)
 

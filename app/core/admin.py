@@ -72,20 +72,20 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(JobPosting)
 class JobPostingAdmin(admin.ModelAdmin):
-    list_display = ('job_title', 'department_name', 'working_site', 'status', 'target_start_date', 'reason_for_posting', 'active')
+    list_display = ('id', 'job_title', 'department_name', 'working_site', 'status', 'target_start_date', 'reason_for_posting', 'active')
     list_filter = ('status', 'department_name', 'working_site')
     search_fields = ('job_title', 'department_name', 'working_site')
-    ordering = ('-target_start_date',)
+    ordering = ('-created_at',)
     list_editable = ('active',)
 
 @admin.register(PRF)
 class PRFAdmin(admin.ModelAdmin):
-    list_display = ['get_job_title', 'business_unit', 'number_of_vacancies']
+    list_display = ['id', 'get_job_title', 'business_unit', 'number_of_vacancies']
     list_filter = ['business_unit', 'job_posting__target_start_date']
 
     def get_job_title(self, obj):
         return obj.job_posting.job_title if obj.job_posting else '-'
-    #
+
     # get_job_title.short_description = 'Job Title'
     # get_job_title.admin_order_field = 'job_posting__job_title'
     #
@@ -124,7 +124,7 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
-    list_display = ['get_job_title', 'get_department', 'get_location', 'get_status', 'education_level',
+    list_display = ['id', 'get_job_title', 'get_department', 'get_location', 'get_status', 'education_level',
                     'experience_level']
     list_filter = ['education_level', 'experience_level', 'client']
 
@@ -202,6 +202,5 @@ class ApplicationFormAdmin(admin.ModelAdmin):
 
 @admin.register(PipelineStep)
 class PipelineStepAdmin(admin.ModelAdmin):
-    list_display = ('id', 'position', 'process_type', 'process_title')
-    list_filter = ('position',)
+    list_display = ('id', 'position_id', 'process_type', 'process_title')
     ordering = ('id', 'order',)
