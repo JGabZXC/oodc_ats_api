@@ -19,7 +19,7 @@ class PrfAV(APIView):
         return [IsAuthenticated()]
 
     def get(self, request):
-        prfs = PRF.objects.all()
+        prfs = PRF.objects.filter(job_posting__active=True)
         serializer = PRFSerializer(prfs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -31,8 +31,18 @@ class PrfAV(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request):
+        ids = request.data.pop('ids', None)
+
+        if isinstance(ids, list):
+            prfs = PRF.objects.filter(id__in=ids)
+            deleted_count, _ = prfs.delete()
+            return Response (status=status.HTTP_204_NO_CONTENT)
+
+        return Response({'error': 'Invalid data. "ids" should be a list of PRF IDs.'}, status=status.HTTP_400_BAD_REQUEST)
+
 class PrfDetails(RetrieveUpdateDestroyAPIView):
-    queryset = PRF.objects.all()
+    queryset = PRF.objects.filter(job_posting__active=True)
     serializer_class = PRFSerializer
     lookup_field = 'pk'
 

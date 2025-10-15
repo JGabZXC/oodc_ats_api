@@ -51,10 +51,18 @@ class PRFSerializer(serializers.ModelSerializer):
     assessment_types_list = AssessmentTypeSerializer(source='assessment_types', many=True, read_only=True)
     hardware_requirements_list = HardwareRequirementSerializer(source='hardware_requirements', many=True, read_only=True)
     software_requirements_list = SoftwareRequirementSerializer(source='software_requirements', many=True, read_only=True)
+
+    immediate_supervisor_display = serializers.SerializerMethodField()
+
     class Meta:
         model = PRF
         fields = '__all__'
         read_only_fields = ['id']
+
+    def get_immediate_supervisor_display(self, obj):
+        if obj.immediate_supervisor:
+            return f"{obj.immediate_supervisor.first_name} {obj.immediate_supervisor.last_name}"
+        return None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -121,3 +129,10 @@ class PRFSerializer(serializers.ModelSerializer):
         _update_related_items(instance, software_requirements_data, SoftwareRequirement, 'software_requirements')
 
         return instance
+
+    def destroy(self, instance):
+        instance.job_posting.active = False
+        instance.job_posting.save()
+
+        return instance
+
