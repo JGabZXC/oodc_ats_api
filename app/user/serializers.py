@@ -2,10 +2,14 @@ from rest_framework import serializers
 from core.models import User
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    full_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         exclude = ['is_superuser', 'is_active', 'is_staff', 'user_permissions', 'groups', 'last_login', 'attempt']
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}"
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
