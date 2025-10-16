@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 from auth.permissions import IsHiringManager
 from core.models import JobPosting
 from job.serializers import JobPostingSerializer
+from position.serializers import PositionSerializer
+from prf.serializers import PRFSerializer
 
 
 # Create your views here.
@@ -73,4 +75,27 @@ class JobPostingDetailView(RetrieveUpdateDestroyAPIView):
         #     return JobPosting.objects.filter(posted_by=user)
 
         return JobPosting.objects.filter(status='active', published=True, active=True)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            job_posting_instance = JobPosting.objects.get(id=self.kwargs.get('pk'))
+        except JobPosting.DoesNotExist:
+            return Response({'error': 'Job Posting not found.'}, status=status.HTTP_404_NOT_FOUND)
+        job_posting_data = self.serializer_class(job_posting_instance).data
+
+        type = job_posting_instance.type
+
+        if type == 'prf':
+            prf_instance = job_posting_instance.prf
+            prf_data = PRFSerializer(prf_instance).data if prf_instance else {}
+            data = {**job_posting_data, **prf_data}
+        else:
+            position_instance = job_posting_instance.position
+            position_data = PositionSerializer(position_instance).data if position_instance else {}
+            data = {**job_posting_data, **position_data}
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
+        return super().get(request, *args, **kwargs)
 

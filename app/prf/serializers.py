@@ -40,7 +40,7 @@ class SoftwareRequirementSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class PRFSerializer(serializers.ModelSerializer):
-    job_posting = JobPostingSerializer()
+    job_posting = JobPostingSerializer(write_only=True)
 
     # Write-only fields for creation
     assessment_types = serializers.ListField(write_only=True, required=False)
